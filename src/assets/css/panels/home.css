@@ -179,13 +179,14 @@
 .social-list {
     border-radius: 10px;
     height: 100%;
+    margin-top: -45px !important;
 }
 
 .social-block {
     display: flex;
     background: var(--background-transparent);
     width: 90px;
-    height: 90px;
+    height: 84px;
     margin-bottom: 1rem;
     border-radius: 10px;
     font-size: 2rem;
