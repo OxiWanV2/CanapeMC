@@ -1,7 +1,7 @@
 {
     "name": "CanapeMC",
     "preductname": "CanapeMC",
-    "version": "2.0.4",
+    "version": "2.0.5",
     "description": "Launcher Mincraft pour le serveur CanapeMC",
     "main": "src/app.js",
     "author": {
@@ -22,6 +22,7 @@
         "ignore": "**/test"
     },
     "dependencies": {
+        "app-builder": "^7.0.4",
         "electron-updater": "^6.1.8",
         "minecraft-java-core": "^3.10.1",
         "node-bdd": "^2.0.3",
