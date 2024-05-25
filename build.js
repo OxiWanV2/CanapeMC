@@ -103,7 +103,7 @@ class Index {
                     }]
                 },
                 linux: {
-                    icon: "./app/assets/images/icon.png",
+                    icon: "./app/assets/images/icon.ico",
                     target: [{
                         target: "AppImage",
                         arch: "x64"
