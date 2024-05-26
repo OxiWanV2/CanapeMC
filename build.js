@@ -1,43 +1,41 @@
 const fs = require("fs");
-
-const builder = require('electron-builder')
+const builder = require('electron-builder');
 const JavaScriptObfuscator = require('javascript-obfuscator');
-const nodeFetch = require('node-fetch')
+const nodeFetch = require('node-fetch');
 const png2icons = require('png2icons');
 const Jimp = require('jimp');
-
 const { preductname } = require('./package.json');
 
 class Index {
     async init() {
-        this.obf = true
-        this.Fileslist = []
-        process.argv.forEach(async val => {
+        this.obf = true;
+        this.Fileslist = [];
+        for (let val of process.argv) {
             if (val.startsWith('--icon')) {
-                return this.iconSet(val.split('=')[1])
+                return this.iconSet(val.split('=')[1]);
             }
 
             if (val.startsWith('--obf')) {
-                this.obf = JSON.parse(val.split('=')[1])
+                this.obf = JSON.parse(val.split('=')[1]);
                 this.Fileslist = this.getFiles("src");
             }
 
             if (val.startsWith('--build')) {
-                let buildType = val.split('=')[1]
-                if (buildType == 'platform') return await this.buildPlatform()
+                let buildType = val.split('=')[1];
+                if (buildType == 'platform') return await this.buildPlatform();
             }
-        });
+        }
     }
 
     async Obfuscate() {
-        if (fs.existsSync("./app")) fs.rmSync("./app", { recursive: true })
+        if (fs.existsSync("./app")) fs.rmSync("./app", { recursive: true });
 
         for (let path of this.Fileslist) {
-            let fileName = path.split('/').pop()
-            let extFile = fileName.split(".").pop()
-            let folder = path.replace(`/${fileName}`, '').replace('src', 'app')
+            let fileName = path.split('/').pop();
+            let extFile = fileName.split(".").pop();
+            let folder = path.replace(`/${fileName}`, '').replace('src', 'app');
 
-            if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true })
+            if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
 
             if (extFile == 'js') {
                 let code = fs.readFileSync(path, "utf8");
@@ -47,7 +45,7 @@ class Index {
                         console.log(`Obfuscate ${path}`);
                         let obf = JavaScriptObfuscator.obfuscate(code, { optionsPreset: 'medium-obfuscation', disableConsoleOutput: false });
                         resolve(fs.writeFileSync(`${folder}/${fileName}`, obf.getObfuscatedCode(), { encoding: "utf-8" }));
-                    })
+                    });
                 } else {
                     console.log(`Copy ${path}`);
                     fs.writeFileSync(`${folder}/${fileName}`, code, { encoding: "utf-8" });
@@ -111,10 +109,10 @@ class Index {
                 }
             }
         }).then(() => {
-            console.log('le build est terminé')
+            console.log('le build est terminé');
         }).catch(err => {
-            console.error('Error during build!', err)
-        })
+            console.error('Error during build!', err);
+        });
     }
 
     getFiles(path, file = []) {
@@ -131,17 +129,36 @@ class Index {
     }
 
     async iconSet(url) {
-        let Buffer = await nodeFetch(url)
-        if (Buffer.status == 200) {
-            Buffer = await Buffer.buffer()
-            const image = await Jimp.read(Buffer);
-            Buffer = await image.resize(256, 256).getBufferAsync(Jimp.MIME_PNG)
-            fs.writeFileSync("src/assets/images/icon.icns", png2icons.createICNS(Buffer, png2icons.BILINEAR, 0));
-            fs.writeFileSync("src/assets/images/icon.ico", png2icons.createICO(Buffer, png2icons.HERMITE, 0, false));
-            fs.writeFileSync("src/assets/images/icon.png", Buffer);
-            console.log('new icon set')
-        } else {
-            console.log('connection error')
+        try {
+            let response = await nodeFetch(url);
+            if (response.status == 200) {
+                let Buffer = await response.buffer();
+                const image = await Jimp.read(Buffer);
+                Buffer = await image.resize(256, 256).getBufferAsync(Jimp.MIME_PNG);
+
+                let icnsBuffer = png2icons.createICNS(Buffer, png2icons.BILINEAR, 0);
+                let icoBuffer = png2icons.createICO(Buffer, png2icons.HERMITE, 0, false);
+                
+                // Adding checks for the buffer lengths
+                if (icnsBuffer && icnsBuffer.length > 0) {
+                    fs.writeFileSync("src/assets/images/icon.icns", icnsBuffer);
+                } else {
+                    throw new Error('Failed to generate ICNS file');
+                }
+
+                if (icoBuffer && icoBuffer.length > 0) {
+                    fs.writeFileSync("src/assets/images/icon.ico", icoBuffer);
+                } else {
+                    throw new Error('Failed to generate ICO file');
+                }
+
+                fs.writeFileSync("src/assets/images/icon.png", Buffer);
+                console.log('new icon set');
+            } else {
+                console.log('Connection error, status:', response.status);
+            }
+        } catch (error) {
+            console.error('Error setting icons:', error);
         }
     }
 }
