@@ -1,7 +1,7 @@
 {
     "name": "CanapeMC",
     "preductname": "CanapeMC",
-    "version": "2.1.2",
+    "version": "2.1.3",
     "description": "Launcher Mincraft pour le serveur CanapeMC",
     "main": "src/app.js",
     "author": {
